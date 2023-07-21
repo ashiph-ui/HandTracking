@@ -2,50 +2,53 @@ import cv2
 import mediapipe as mp
 import time
 
-# First setting up the which camera to use - this is the video object:
-cap = cv2.VideoCapture(0) # 0 indicates which camera to use
 
-mpHands = mp.solutions.hands # Hands object - Formality
-hands = mpHands.Hands() # Hands object - frames
-mpDraw = mp.solutions.drawing_utils # Drawing utilities - this will 
+class handDetector():
+    def __init__(self, mode=False, maxHands=2, model_complexity=1, detectionCon=0.5, trackCon=0.5):
+        # Initialising the Parameters/variables
+        self.mode = mode # Static image mode
+        self.maxHands = maxHands # Maximum number of hands
+        self.model_complexity = model_complexity # Complexity of the hand landmark model: 0 or 1
+        self.detectionCon = detectionCon # Minimum confidence value for hand detection
+        self.trackCon = trackCon # Minimum confidence value for hand tracking
 
-pTime = 0 # Previous time
-cTime = 0 # Current time
+        # Initialising the hands object within the class
+        self.mpHands = mp.solutions.hands # Hands object - Formality
+        self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.model_complexity,self.detectionCon, self.trackCon) # Hands object - frames
+        self.mpDraw = mp.solutions.drawing_utils 
 
-while True:
-    success, img = cap.read() # Frame
-    imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Convert the image to RGB
-    results = hands.process(imgRGB) # Process the image
-    print(results.multi_hand_landmarks) # Print the results - This will specifcally print the landmarks of the hand
-    
-    if results.multi_hand_landmarks:
-        for handsLM in results.multi_hand_landmarks:
-            for id, lm in enumerate(handsLM.landmark):
-                # print(id, lm)
-                h, w, c = img.shape
-                cx, cy = int(lm.x*w), int(lm.y*h)
-                print(id, cx, cy)
-                # Only drawing a circle for id number 5
-                if id == 4: # This is the thumb
-                    cv2.circle(img, (cx, cy), 15, (255,0,255), cv2.FILLED)
-            mpDraw.draw_landmarks(img, handsLM, mpHands.HAND_CONNECTIONS)
+    def findHands(self, img, draw=True):
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Convert the image to RGB
+        results = self.hands.process(imgRGB) # Process the image
+        print(results.multi_hand_landmarks) # Print the results - This will specifcally print the landmarks of the hand
+        
+        if results.multi_hand_landmarks:
+            for handsLM in results.multi_hand_landmarks:
+                if draw:
+                    self.mpDraw.draw_landmarks(img, handsLM, self.mpHands.HAND_CONNECTIONS)
+        return img
 
-    cTime = time.time() # Current time
-    fps = 1/(cTime-pTime) # Frames per second
-    pTime = cTime # Previous time become Current time
+        # for id, lm in enumerate(handsLM.landmark):
+        #                     # print(id, lm)
+        #                     h, w, c = img.shape
+        #                     cx, cy = int(lm.x*w), int(lm.y*h)
+        #                     print(id, cx, cy)
+        #                     # Only drawing a circle for id number 5
+        #                     if id == 4: # This is the thumb
+        #                         cv2.circle(img, (cx, cy), 15, (255,0,255), cv2.FILLED)
 
-    cv2.putText(img, "fps: "+ str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255,0,255), 3)
 
-    cv2.imshow("Image", img)
-    cv2.waitKey(1)
 
 def main():
-    cap = cv2.VideoCapture(0)
-
     pTime = 0 # Previous time
     cTime = 0 # Current time
+    cap = cv2.VideoCapture(0)
+    detector = handDetector()
 
     while True:
+        success, img = cap.read() # Frame
+        img = detector.findHands(img)
+
         cTime = time.time() # Current time
         fps = 1/(cTime-pTime) # Frames per second
         pTime = cTime

@@ -19,23 +19,28 @@ class handDetector():
 
     def findHands(self, img, draw=True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Convert the image to RGB
-        results = self.hands.process(imgRGB) # Process the image
-        print(results.multi_hand_landmarks) # Print the results - This will specifcally print the landmarks of the hand
+        self.results = self.hands.process(imgRGB) # Process the image
+        print(self.results.multi_hand_landmarks) # Print the results - This will specifcally print the landmarks of the hand
         
-        if results.multi_hand_landmarks:
-            for handsLM in results.multi_hand_landmarks:
+        if self.results.multi_hand_landmarks:
+            for handsLM in self.results.multi_hand_landmarks: 
                 if draw:
                     self.mpDraw.draw_landmarks(img, handsLM, self.mpHands.HAND_CONNECTIONS)
         return img
+    
+    def findPosition(self, img, handNo=0, draw=True):
+        lmList = [] # Landmark list
+        if self.results.multi_hand_landmarks:
+            myHand = self.results.multi_hand_landmarks[handNo]
 
-        # for id, lm in enumerate(handsLM.landmark):
-        #                     # print(id, lm)
-        #                     h, w, c = img.shape
-        #                     cx, cy = int(lm.x*w), int(lm.y*h)
-        #                     print(id, cx, cy)
-        #                     # Only drawing a circle for id number 5
-        #                     if id == 4: # This is the thumb
-        #                         cv2.circle(img, (cx, cy), 15, (255,0,255), cv2.FILLED)
+            for id, lm in enumerate(myHand.landmark):
+                h, w, c = img.shape
+                cx, cy = int(lm.x*w), int(lm.y*h)
+                lmList.append([id, cx, cy])
+                            # Only drawing a circle for id number 5
+                if draw: # This is the thumb
+                    cv2.circle(img, (cx, cy), 15, (255,0,255), cv2.FILLED)
+        return lmList
 
 
 
@@ -48,6 +53,9 @@ def main():
     while True:
         success, img = cap.read() # Frame
         img = detector.findHands(img)
+        lmlist = detector.findPosition(img)
+        if len(lmlist) != 0:
+            print(lmlist[4])
 
         cTime = time.time() # Current time
         fps = 1/(cTime-pTime) # Frames per second

@@ -9,6 +9,9 @@ mpHands = mp.solutions.hands # Hands object - Formality
 hands = mpHands.Hands() # Hands object - frames
 mpDraw = mp.solutions.drawing_utils # Drawing utilities - this will 
 
+pTime = 0 # Previous time
+cTime = 0 # Current time
+
 while True:
     success, img = cap.read() # Frame
     imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Convert the image to RGB
@@ -19,7 +22,12 @@ while True:
         for handsLM in results.multi_hand_landmarks:
             mpDraw.draw_landmarks(img, handsLM, mpHands.HAND_CONNECTIONS)
 
-    
+    cTime = time.time() # Current time
+    fps = 1/(cTime-pTime) # Frames per second
+    pTime = cTime # Previous time become Current time
+
+    cv2.putText(img, "fps: "+ str(int(fps)), (10, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255,0,255), 3)
+
     cv2.imshow("Image", img)
     cv2.waitKey(1)
 

@@ -53,7 +53,7 @@ def main():
     while True:
         success, img = cap.read() # Frame
         img = detector.findHands(img)
-        lmlist = detector.findPosition(img)
+        lmlist = detector.findPosition(img, draw=False)
         if len(lmlist) != 0:
             print(lmlist[4])
 

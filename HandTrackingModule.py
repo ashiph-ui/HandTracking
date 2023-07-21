@@ -43,7 +43,7 @@ class handDetector():
         return lmList
 
 
-
+# This main function shows how to set up the camera and use the class
 def main():
     pTime = 0 # Previous time
     cTime = 0 # Current time
